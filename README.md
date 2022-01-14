@@ -17,7 +17,7 @@ blitzunlink is a tool for converting BlitzBasic, BlitzPlus, BlitzMax, Blitz3D ga
 4. Convert the game code blob into a COFF object with this tool:
 
 ```
-bbunlink 1111 bbgame.obj
+blitzunlink 1111 bbgame.obj
 ```
 
 5. Link the COFF object into a DLL using `gcc`. `runtime.dll` is the file from the outputs of the Blitz3D compile:
