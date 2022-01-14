@@ -21,6 +21,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <coffi/coffi.hpp>
 
 struct ProcessedBB
@@ -192,7 +193,7 @@ int main(int argc, char** argv)
 
   for (const auto& imp : processed.imports_absolute)
   {
-    if (0 == strncmp(imp.second.c_str(), "_f", 2))
+    if (0 == imp.second.compare(0, 2, "_f"))
       continue; // absolute importing a function
 
     const auto resolved = find_sym(processed.exports, imp.second);
@@ -220,6 +221,16 @@ int main(int argc, char** argv)
   const auto exp_lib = find_sym(processed.exports, "__LIBS");
   if (exp_lib != processed.exports.end())
     rva_rdata = (std::min)(exp_lib->first, rva_rdata);
+
+  const auto exp_cstrs = find_sym(processed.exports, "__CSTRS");
+  if (exp_cstrs != processed.exports.end())
+    rva_rdata = (std::min)(exp_cstrs->first, rva_rdata);
+
+  std::set<std::string> userlib_imports;
+  if (exp_lib != processed.exports.end() && exp_data != processed.exports.end() && exp_lib->first < exp_data->first)
+    for (const auto& imp : processed.imports_absolute)
+      if (imp.first >= exp_lib->first && imp.first < exp_data->first)
+        userlib_imports.emplace(imp.second);
 
   if (rva_rdata == 0xFFFFFFFF)
   {
@@ -306,6 +317,7 @@ int main(int argc, char** argv)
       const auto sym = writer.add_symbol("_" + exp.second);
 
       if (0 == exp.second.compare(0, 2, "_a")
+        || (userlib_imports.find(exp.second) != userlib_imports.end()) // userlib stuff
         || 0 == exp.second.compare(0, 2, "_v")
         || 0 == exp.second.compare(0, 2, "_t")
         || (exp.second.size() > 1 && exp.second[0] == '_' && isdigit(exp.second[1]))) // data
@@ -341,7 +353,10 @@ int main(int argc, char** argv)
 
       const auto sym = writer.add_symbol("_" + exp.second);
 
-      if (exp.second == "__DATA" || exp.second == "__LIBS" || 0 == exp.second.compare(0, 4, "__bb"))
+      if (exp.second == "__DATA"
+        || exp.second == "__LIBS" 
+        || exp.second == "__CSTRS" 
+        || 0 == exp.second.compare(0, 4, "__bb"))
       {
         sym->set_type(IMAGE_SYM_TYPE_NOT_FUNCTION);
         sym->set_storage_class(IMAGE_SYM_CLASS_EXTERNAL);
