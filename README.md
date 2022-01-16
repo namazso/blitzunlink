@@ -6,7 +6,7 @@ blitzunlink is a tool for converting BlitzBasic, BlitzPlus, BlitzMax, Blitz3D ga
 
 0. Install mingw-w64 32-bit, this will be needed later.
 
-1. Compile the `loader` branch of [my fork of Blitz3D](https://github.com/namazso/blitz3d_msvc2017)
+1. Compile the `loader` branch of my fork of [BlitzPlus](https://github.com/namazso/blitzplus_msvc2017) or [Blitz3D](https://github.com/namazso/blitz3d_msvc2017)
 
 2. Compile this project
 
